@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public class UserMealsUtil {
     public static void main(String[] args) {
@@ -29,27 +31,29 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO return filtered list with excess. Implement by cycles
         HashMap<LocalDate, Integer> hmap = new HashMap<>();
         for (UserMeal meal: meals) {
-            int calori = hmap.getOrDefault(meal.getDateTime().toLocalDate(), 0);
-            hmap.put(meal.getDateTime().toLocalDate(), calori + meal.getCalories());
+            int calori = hmap.getOrDefault(meal.getDate(), 0);
+            hmap.put(meal.getDate(), calori + meal.getCalories());
+            //или так
+            //hmap.merge(meal.getDate(), meal.getCalories(), Integer::sum);
         }
         System.out.println(hmap.toString());
         System.out.println("------");
 
         List<UserMealWithExcess> ll = new ArrayList<>();
         for (UserMeal meal: meals) {
-            if (TimeUtil.isBetweenHalfOpen(meal.getDateTime().toLocalTime(), startTime, endTime)) {
-                UserMealWithExcess uu = new UserMealWithExcess(meal.getDateTime(), meal.getDescription(), meal.getCalories(), hmap.get(meal.getDateTime().toLocalDate()) > caloriesPerDay);
-                ll.add(uu);
+            if (TimeUtil.isBetweenHalfOpen(meal.getTime(), startTime, endTime)) {
+                ll.add (new UserMealWithExcess(meal.getDateTime(), meal.getDescription(), meal.getCalories(),
+                        hmap.get(meal.getDate()) > caloriesPerDay));
             }
         }
         return (ll);
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO Implement by streams
+        Map<LocalDate, Integer> hmap = meals.stream().collect(Collectors.toMap(UserMeal::getDate, UserMeal::getCalories, Integer::sum));
+
         return null;
     }
 }
